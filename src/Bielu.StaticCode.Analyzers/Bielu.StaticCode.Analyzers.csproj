@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Bielu.StaticCode.Analyzers</AssemblyName>
+    <PackageId>Bielu.StaticCode.Analyzers</PackageId>
+    <Description>Bielu.StaticCode.Analyzers - Roslyn-based static code analyzers enforcing bielu coding conventions</Description>
+    <PackageTags>roslyn;analyzer;code-quality;decorator;options;primary-constructor</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <!-- Analyzer packaging settings -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <!-- RS1036: this package intentionally includes code fix providers alongside analyzers -->
+    <NoWarn>$(NoWarn);RS1036</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Meta-analyzer that validates our analyzer code - only needs analyzer assets, not compile references -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Roslyn API used to write analyzers and code fixes - needs compile references -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- Workspaces layer needed for code fix providers (CodeAction, Document, etc.) -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Pack the analyzer DLL into the correct folder in the NuGet package -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+</Project>
