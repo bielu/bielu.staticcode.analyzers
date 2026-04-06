@@ -9,7 +9,7 @@
     <PackageId>Bielu.StaticCode.Analyzers</PackageId>
     <Description>Bielu.StaticCode.Analyzers - Roslyn-based static code analyzers enforcing bielu coding conventions</Description>
     <PackageTags>roslyn;analyzer;code-quality;decorator;options;primary-constructor</PackageTags>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <!-- Analyzer packaging settings -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
