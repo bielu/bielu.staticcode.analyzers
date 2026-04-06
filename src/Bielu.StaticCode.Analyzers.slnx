@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="Bielu.StaticCode.Analyzers.Tests/Bielu.StaticCode.Analyzers.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Solution Files/">
+    <File Path="../.gitignore" />
+    <File Path="../CODEOWNERS" />
+    <File Path="../LICENSE" />
+    <File Path="../README.md" />
+    <File Path="../version.props" />
+    <File Path="../Directory.Packages.props" />
+  </Folder>
+  <Project Path="Bielu.StaticCode.Analyzers/Bielu.StaticCode.Analyzers.csproj" />
+</Solution>
