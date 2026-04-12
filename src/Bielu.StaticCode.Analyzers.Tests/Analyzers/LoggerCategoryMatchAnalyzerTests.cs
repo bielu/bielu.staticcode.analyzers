@@ -162,4 +162,63 @@ public class LoggerCategoryMatchAnalyzerTests
         diagnostics.Length.ShouldBe(1);
         diagnostics.ShouldContain(d => d.Id == LoggerCategoryMatchAnalyzer.DiagnosticId);
     }
+
+    [Fact]
+    public async Task MultipleLoggers_OneMatchingClass_ShouldNotReportDiagnostic()
+    {
+        const string code = """
+            using Microsoft.Extensions.Logging;
+
+            public class OtherClass { }
+
+            public class MyService
+            {
+                public MyService(ILogger<MyService> logger, ILogger<OtherClass> otherLogger) { }
+            }
+            """;
+
+        var diagnostics = await AnalyzerTestHelper.GetDiagnosticsAsync(_analyzer, code);
+
+        diagnostics.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task MultipleLoggers_NoneMatchingClass_ShouldReportDiagnostic()
+    {
+        const string code = """
+            using Microsoft.Extensions.Logging;
+
+            public class ClassA { }
+            public class ClassB { }
+
+            public class MyService
+            {
+                public MyService(ILogger<ClassA> loggerA, ILogger<ClassB> loggerB) { }
+            }
+            """;
+
+        var diagnostics = await AnalyzerTestHelper.GetDiagnosticsAsync(_analyzer, code);
+
+        diagnostics.ShouldNotBeEmpty();
+        diagnostics.Length.ShouldBe(2);
+        diagnostics.ShouldAllBe(d => d.Id == LoggerCategoryMatchAnalyzer.DiagnosticId);
+    }
+
+    [Fact]
+    public async Task MultipleLoggers_PrimaryConstructor_OneMatchingClass_ShouldNotReportDiagnostic()
+    {
+        const string code = """
+            using Microsoft.Extensions.Logging;
+
+            public class OtherClass { }
+
+            public class MyService(ILogger<MyService> logger, ILogger<OtherClass> otherLogger)
+            {
+            }
+            """;
+
+        var diagnostics = await AnalyzerTestHelper.GetDiagnosticsAsync(_analyzer, code);
+
+        diagnostics.ShouldBeEmpty();
+    }
 }

@@ -71,6 +71,9 @@ public sealed class LoggerCategoryMatchAnalyzer : DiagnosticAnalyzer
         SeparatedSyntaxList<ParameterSyntax> parameters,
         INamedTypeSymbol containingClass)
     {
+        // Collect all ILogger<T> parameters first
+        var loggerParams = new List<(ParameterSyntax parameter, ITypeSymbol typeArg)>();
+
         foreach (var parameter in parameters)
         {
             if (parameter.Type is null)
@@ -98,18 +101,25 @@ public sealed class LoggerCategoryMatchAnalyzer : DiagnosticAnalyzer
             if (!namedType.IsGenericType || namedType.TypeArguments.Length != 1)
                 continue;
 
-            var loggerTypeArg = namedType.TypeArguments[0];
+            loggerParams.Add((parameter, namedType.TypeArguments[0]));
+        }
 
-            // Check if the type argument matches the containing class
-            if (!SymbolEqualityComparer.Default.Equals(loggerTypeArg, containingClass))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    Rule,
-                    parameter.GetLocation(),
-                    parameter.Identifier.Text,
-                    loggerTypeArg.Name,
-                    containingClass.Name));
-            }
+        if (loggerParams.Count == 0)
+            return;
+
+        // If at least one logger has T matching the containing class, don't flag anything
+        if (loggerParams.Any(lp => SymbolEqualityComparer.Default.Equals(lp.typeArg, containingClass)))
+            return;
+
+        // None matches — flag all mismatched loggers
+        foreach (var (parameter, typeArg) in loggerParams)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Rule,
+                parameter.GetLocation(),
+                parameter.Identifier.Text,
+                typeArg.Name,
+                containingClass.Name));
         }
     }
 }

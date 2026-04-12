@@ -9,14 +9,19 @@ public class WrapperNamingAnalyzerTests
     private readonly WrapperNamingAnalyzer _analyzer = new();
 
     [Fact]
-    public async Task ClassWithoutWrapperPattern_ShouldNotReportDiagnostic()
+    public async Task ClassNotWrappingAnything_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
-
-            public class ApiService : IApiService
+            public class ApiService
             {
                 public void Execute() { }
+            }
+
+            public class MyController
+            {
+                private readonly ApiService _svc;
+                public MyController(ApiService svc) { _svc = svc; }
+                public void HandleRequest() { }
             }
             """;
 
@@ -26,15 +31,18 @@ public class WrapperNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task ClassWithCorrectWrapperName_ShouldNotReportDiagnostic()
+    public async Task WrapperWithCorrectName_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
-
-            public class RetryApiServiceWrapper : IApiService
+            public class ApiService
             {
-                private readonly IApiService _inner;
-                public RetryApiServiceWrapper(IApiService inner) { _inner = inner; }
+                public void Execute() { }
+            }
+
+            public class RetryApiServiceWrapper
+            {
+                private readonly ApiService _inner;
+                public RetryApiServiceWrapper(ApiService inner) { _inner = inner; }
                 public void Execute() { _inner.Execute(); }
             }
             """;
@@ -48,12 +56,15 @@ public class WrapperNamingAnalyzerTests
     public async Task WrapperWithWrongName_ShouldReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
-
-            public class ApiServiceProxy : IApiService
+            public class ApiService
             {
-                private readonly IApiService _inner;
-                public ApiServiceProxy(IApiService inner) { _inner = inner; }
+                public void Execute() { }
+            }
+
+            public class ApiServiceProxy
+            {
+                private readonly ApiService _inner;
+                public ApiServiceProxy(ApiService inner) { _inner = inner; }
                 public void Execute() { _inner.Execute(); }
             }
             """;
@@ -68,12 +79,16 @@ public class WrapperNamingAnalyzerTests
     public async Task WrapperWithModifierAndCorrectSuffix_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IUserRepository { }
-
-            public class CachedUserRepositoryWrapper : IUserRepository
+            public class UserRepository
             {
-                private readonly IUserRepository _inner;
-                public CachedUserRepositoryWrapper(IUserRepository inner) { _inner = inner; }
+                public void Save() { }
+            }
+
+            public class CachedUserRepositoryWrapper
+            {
+                private readonly UserRepository _inner;
+                public CachedUserRepositoryWrapper(UserRepository inner) { _inner = inner; }
+                public void Save() { _inner.Save(); }
             }
             """;
 
@@ -83,15 +98,19 @@ public class WrapperNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task ClassImplementingInterfaceWithoutWrapperParameter_ShouldNotReportDiagnostic()
+    public async Task ClassWithNoMatchingMethods_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
-
-            public class CompositeApiService : IApiService
+            public class ApiService
             {
-                public CompositeApiService(string connectionString) { }
                 public void Execute() { }
+            }
+
+            public class ApiServiceHelper
+            {
+                private readonly ApiService _svc;
+                public ApiServiceHelper(ApiService svc) { _svc = svc; }
+                public void DoSomethingElse() { }
             }
             """;
 
@@ -104,9 +123,12 @@ public class WrapperNamingAnalyzerTests
     public async Task WrapperUsingPrimaryConstructor_WithWrongName_ShouldReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
+            public class ApiService
+            {
+                public void Execute() { }
+            }
 
-            public class ApiServiceFacade(IApiService inner) : IApiService
+            public class ApiServiceFacade(ApiService inner)
             {
                 public void Execute() => inner.Execute();
             }
@@ -122,9 +144,12 @@ public class WrapperNamingAnalyzerTests
     public async Task WrapperUsingPrimaryConstructor_WithCorrectName_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
+            public class ApiService
+            {
+                public void Execute() { }
+            }
 
-            public class ResilienceApiServiceWrapper(IApiService inner) : IApiService
+            public class ResilienceApiServiceWrapper(ApiService inner)
             {
                 public void Execute() => inner.Execute();
             }
@@ -139,12 +164,15 @@ public class WrapperNamingAnalyzerTests
     public async Task AbstractClass_ShouldNotReportDiagnostic()
     {
         const string code = """
-            public interface IApiService { void Execute(); }
-
-            public abstract class BaseApiServiceWrapper : IApiService
+            public class ApiService
             {
-                private readonly IApiService _inner;
-                protected BaseApiServiceWrapper(IApiService inner) { _inner = inner; }
+                public void Execute() { }
+            }
+
+            public abstract class BaseApiServiceWrapper
+            {
+                private readonly ApiService _inner;
+                protected BaseApiServiceWrapper(ApiService inner) { _inner = inner; }
                 public abstract void Execute();
             }
             """;
@@ -155,21 +183,43 @@ public class WrapperNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task DecoratorNamedClass_ShouldNotReportWrapperDiagnostic()
+    public async Task InheritedClass_ShouldNotReportDiagnostic()
+    {
+        const string code = """
+            public class ApiService
+            {
+                public void Execute() { }
+            }
+
+            public class ExtendedApiService : ApiService
+            {
+                public ExtendedApiService(ApiService inner) { }
+                public void ExtraMethod() { }
+            }
+            """;
+
+        var diagnostics = await AnalyzerTestHelper.GetDiagnosticsAsync(_analyzer, code);
+
+        diagnostics.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ClassTakingInterface_ShouldNotReportDiagnostic()
     {
         const string code = """
             public interface IApiService { void Execute(); }
 
-            public class CachedApiServiceDecorator : IApiService
+            public class ApiServiceProxy : IApiService
             {
                 private readonly IApiService _inner;
-                public CachedApiServiceDecorator(IApiService inner) { _inner = inner; }
+                public ApiServiceProxy(IApiService inner) { _inner = inner; }
                 public void Execute() { _inner.Execute(); }
             }
             """;
 
         var diagnostics = await AnalyzerTestHelper.GetDiagnosticsAsync(_analyzer, code);
 
+        // Interface-based wrapping is the decorator pattern, not wrapper
         diagnostics.ShouldBeEmpty();
     }
 }
