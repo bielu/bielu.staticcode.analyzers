@@ -14,3 +14,5 @@ BIELU006 | Naming | Warning | ServiceCollectionExtensionNamingAnalyzer
 BIELU007 | Style | Warning | NullGuardClauseAnalyzer
 BIELU008 | Usage | Warning | ConfigureAwaitAnalyzer
 BIELU009 | Design | Info | SealedInternalClassAnalyzer
+BIELU010 | Naming | Warning | WrapperNamingAnalyzer
+BIELU011 | Usage | Warning | LoggerCategoryMatchAnalyzer
