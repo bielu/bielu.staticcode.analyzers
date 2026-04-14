@@ -100,9 +100,14 @@ public sealed class PrimaryConstructorFieldRemovalAnalyzer : DiagnosticAnalyzer
                     !SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, classSymbol))
                     continue;
 
+                var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+                properties.Add("fieldName", variable.Identifier.Text);
+                properties.Add("parameterName", initializerName);
+
                 context.ReportDiagnostic(Diagnostic.Create(
                     Rule,
                     variable.GetLocation(),
+                    properties.ToImmutable(),
                     variable.Identifier.Text,
                     initializerName));
             }
