@@ -54,9 +54,13 @@ public sealed class NullGuardClauseAnalyzer : DiagnosticAnalyzer
         if (!ThrowsArgumentNullException(ifStatement.Statement))
             return;
 
+        var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+        properties.Add("parameterName", parameterName);
+
         context.ReportDiagnostic(Diagnostic.Create(
             Rule,
             ifStatement.GetLocation(),
+            properties.ToImmutable(),
             parameterName));
     }
 

@@ -90,9 +90,13 @@ public sealed class TypedLoggerAnalyzer : DiagnosticAnalyzer
             if (namedType.IsGenericType)
                 continue;
 
+            var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+            properties.Add("className", className);
+
             context.ReportDiagnostic(Diagnostic.Create(
                 Rule,
                 parameter.GetLocation(),
+                properties.ToImmutable(),
                 parameter.Identifier.Text,
                 className));
         }
