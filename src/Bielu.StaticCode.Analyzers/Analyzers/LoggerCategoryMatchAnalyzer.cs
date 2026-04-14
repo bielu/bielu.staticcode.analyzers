@@ -114,9 +114,13 @@ public sealed class LoggerCategoryMatchAnalyzer : DiagnosticAnalyzer
         // None matches — flag all mismatched loggers
         foreach (var (parameter, typeArg) in loggerParams)
         {
+            var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+            properties.Add("expectedClassName", containingClass.Name);
+
             context.ReportDiagnostic(Diagnostic.Create(
                 Rule,
                 parameter.GetLocation(),
+                properties.ToImmutable(),
                 parameter.Identifier.Text,
                 typeArg.Name,
                 containingClass.Name));

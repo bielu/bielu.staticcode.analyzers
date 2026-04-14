@@ -15,17 +15,20 @@ Roslyn-based static code analyzers that enforce coding conventions used across t
 
 ## Analyzers
 
-| Rule ID | Category | Severity | Title |
-|---------|----------|----------|-------|
-| BIELU001 | Naming | Warning | [Decorator naming convention](#bielu001--decorator-naming-convention) |
-| BIELU002 | Style | Warning | [Use primary constructor](#bielu002--use-primary-constructor) |
-| BIELU003 | Usage | Warning | [Use IOptionsMonitor\<T\>](#bielu003--use-ioptionsmonitort) |
-| BIELU004 | Usage | Warning | [Use ILogger\<T\>](#bielu004--use-iloggert) |
-| BIELU005 | Naming | Warning | [Async method naming](#bielu005--async-method-naming) |
-| BIELU006 | Naming | Warning | [IServiceCollection extension class naming](#bielu006--iservicecollection-extension-class-naming) |
-| BIELU007 | Style | Warning | [Use ArgumentNullException.ThrowIfNull()](#bielu007--use-argumentnullexceptionthrowifnull) |
-| BIELU008 | Usage | Warning | [Use ConfigureAwait(false)](#bielu008--use-configureawaitfalse) |
-| BIELU009 | Design | Info | [Seal internal classes](#bielu009--seal-internal-classes) |
+| Rule ID | Category | Severity | Title | Code Fix |
+|---------|----------|----------|-------|----------|
+| BIELU001 | Naming | Warning | [Decorator naming convention](#bielu001--decorator-naming-convention) | — |
+| BIELU002 | Style | Warning | [Use primary constructor](#bielu002--use-primary-constructor) | — |
+| BIELU003 | Usage | Warning | [Use IOptionsMonitor\<T\>](#bielu003--use-ioptionsmonitort) | ✅ |
+| BIELU004 | Usage | Warning | [Use ILogger\<T\>](#bielu004--use-iloggert) | ✅ |
+| BIELU005 | Naming | Warning | [Async method naming](#bielu005--async-method-naming) | — |
+| BIELU006 | Naming | Warning | [IServiceCollection extension class naming](#bielu006--iservicecollection-extension-class-naming) | — |
+| BIELU007 | Style | Warning | [Use ArgumentNullException.ThrowIfNull()](#bielu007--use-argumentnullexceptionthrowifnull) | ✅ |
+| BIELU008 | Usage | Warning | [Use ConfigureAwait(false)](#bielu008--use-configureawaitfalse) | ✅ |
+| BIELU009 | Design | Info | [Seal internal classes](#bielu009--seal-internal-classes) | ✅ |
+| BIELU010 | Naming | Warning | [Wrapper naming convention](#bielu010--wrapper-naming-convention) | — |
+| BIELU011 | Usage | Warning | [ILogger\<T\> category match](#bielu011--iloggert-category-match) | ✅ |
+| BIELU012 | Style | Warning | [Remove redundant private field](#bielu012--remove-redundant-private-field) | ✅ |
 
 ---
 
@@ -81,7 +84,7 @@ Options should be injected using `IOptionsMonitor<T>` rather than `IOptions<T>` 
 | `IOptions<MyOptions>` | `IOptionsMonitor<MyOptions>` |
 | `IOptionsSnapshot<MyOptions>` | `IOptionsMonitor<MyOptions>` |
 
-A code fix is provided to automatically replace `IOptions<T>` / `IOptionsSnapshot<T>` with `IOptionsMonitor<T>`.
+A code fix is provided to automatically replace `IOptions<T>` / `IOptionsSnapshot<T>` with `IOptionsMonitor<T>` and update `.Value` property accesses to `.CurrentValue`.
 
 ### BIELU004 – Use ILogger\<T\>
 
@@ -94,6 +97,8 @@ public class MyService(ILogger logger) { }
 // ✅ Typed logger
 public class MyService(ILogger<MyService> logger) { }
 ```
+
+A code fix is provided to automatically replace `ILogger` with `ILogger<ClassName>`.
 
 ### BIELU005 – Async Method Naming
 
@@ -143,6 +148,8 @@ if (name == null)
 ArgumentNullException.ThrowIfNull(name);
 ```
 
+A code fix is provided to automatically replace the if-throw pattern with `ArgumentNullException.ThrowIfNull()`.
+
 ### BIELU008 – Use ConfigureAwait(false)
 
 In library code, awaited tasks should call `.ConfigureAwait(false)` to avoid capturing the synchronization context, preventing potential deadlocks and improving performance.
@@ -154,6 +161,8 @@ await Task.Delay(100);
 // ✅ Explicit ConfigureAwait
 await Task.Delay(100).ConfigureAwait(false);
 ```
+
+A code fix is provided to automatically append `.ConfigureAwait(false)` to the awaited expression.
 
 ### BIELU009 – Seal Internal Classes
 
@@ -167,10 +176,67 @@ internal class MyHelper { }
 internal sealed class MyHelper { }
 ```
 
+A code fix is provided to automatically add the `sealed` modifier.
+
 Exceptions:
 - Classes that are already `sealed`, `abstract`, or `static`
 - Classes with `virtual` or `abstract` members
 - Classes that have derived classes in the same file
+
+### BIELU010 – Wrapper Naming Convention
+
+Wrapper classes must follow the naming pattern `{Modifier}{ClassName}Wrapper`.
+
+| ❌ Incorrect | ✅ Correct |
+|---|---|
+| `MyHttpClient` wrapping `HttpClient` | `RetryHttpClientWrapper` wrapping `HttpClient` |
+
+A class is considered a **wrapper** when it:
+1. Takes a concrete class as a constructor parameter
+2. Exposes at least one public method with the same name as the wrapped type
+
+The class name must end with `{WrappedClassName}Wrapper` (e.g. `HttpClientWrapper`), optionally prefixed by a modifier (e.g. `Retry`, `Cached`).
+
+### BIELU011 – ILogger\<T\> Category Match
+
+The type parameter of `ILogger<T>` must match the containing class. For example, in class `MyService`, the logger should be `ILogger<MyService>`, not `ILogger<OtherClass>`.
+
+```csharp
+// ❌ Wrong category
+public class MyService(ILogger<OtherClass> logger) { }
+
+// ✅ Correct category
+public class MyService(ILogger<MyService> logger) { }
+```
+
+A code fix is provided to automatically replace the type argument with the containing class name.
+
+### BIELU012 – Remove Redundant Private Field
+
+When a class uses a primary constructor, private fields that are simply assigned from a primary constructor parameter are redundant. The parameter can be used directly instead.
+
+```csharp
+// ❌ Redundant field
+public class MyService(string name)
+{
+    private readonly string _name = name;
+
+    public string GetName() => _name; // can use 'name' directly
+}
+
+// ✅ Use parameter directly
+public class MyService(string name)
+{
+    public string GetName() => name;
+}
+```
+
+A code fix is provided to automatically remove the field and replace all usages with the primary constructor parameter.
+
+Exceptions:
+- Fields whose corresponding parameter is passed to a base class constructor (e.g. `: Base(name)`)
+- Non-private fields (public, protected, internal)
+- Fields initialized with an expression rather than a simple parameter reference
 
 ## Contributing
 
