@@ -84,7 +84,7 @@ Options should be injected using `IOptionsMonitor<T>` rather than `IOptions<T>` 
 | `IOptions<MyOptions>` | `IOptionsMonitor<MyOptions>` |
 | `IOptionsSnapshot<MyOptions>` | `IOptionsMonitor<MyOptions>` |
 
-A code fix is provided to automatically replace `IOptions<T>` / `IOptionsSnapshot<T>` with `IOptionsMonitor<T>`.
+A code fix is provided to automatically replace `IOptions<T>` / `IOptionsSnapshot<T>` with `IOptionsMonitor<T>` and update `.Value` property accesses to `.CurrentValue`.
 
 ### BIELU004 – Use ILogger\<T\>
 
