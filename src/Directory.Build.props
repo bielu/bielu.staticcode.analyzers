@@ -9,6 +9,7 @@
         <Authors>bielu</Authors>
         <PackageOutputPath>$(MSBuildProjectDirectory)/../../dist</PackageOutputPath>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>icon.png</PackageIcon>
         <RepositoryUrl>https://github.com/bielu/bielu.staticcode.analyzers</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageProjectUrl>https://github.com/bielu/bielu.staticcode.analyzers</PackageProjectUrl>
@@ -16,6 +17,8 @@
 
     <ItemGroup>
         <None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
+        <!-- Rendered at 512px from icon.svg next to it. -->
+        <None Include="$(MSBuildThisFileDirectory)../assets/icon.png" Pack="true" PackagePath="/" Visible="false" />
     </ItemGroup>
 
 </Project>
