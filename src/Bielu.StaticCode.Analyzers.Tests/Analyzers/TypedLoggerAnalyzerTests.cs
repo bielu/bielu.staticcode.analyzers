@@ -1,4 +1,4 @@
-using Bielu.StaticCode.Analyzers.Analyzers;
+﻿using Bielu.StaticCode.Analyzers.Analyzers;
 using Microsoft.Extensions.Logging;
 using Shouldly;
 using Xunit;

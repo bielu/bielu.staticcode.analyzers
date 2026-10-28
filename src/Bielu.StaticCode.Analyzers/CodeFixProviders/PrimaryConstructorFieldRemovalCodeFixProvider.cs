@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -90,36 +90,36 @@ public sealed class PrimaryConstructorFieldRemovalCodeFixProvider : CodeFixProvi
                 // Replace `this._field` with `parameterName`
                 case MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } memberAccess
                     when memberAccess.Name is IdentifierNameSyntax memberName:
-                {
-                    var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
-                    if (symbol is not null && SymbolEqualityComparer.Default.Equals(symbol, fieldSymbol))
                     {
-                        nodesToReplace[memberAccess] = SyntaxFactory.IdentifierName(parameterName)
-                            .WithTriviaFrom(memberAccess);
+                        var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+                        if (symbol is not null && SymbolEqualityComparer.Default.Equals(symbol, fieldSymbol))
+                        {
+                            nodesToReplace[memberAccess] = SyntaxFactory.IdentifierName(parameterName)
+                                .WithTriviaFrom(memberAccess);
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 // Replace `_field` with `parameterName`
                 case IdentifierNameSyntax identifierName
                     when identifierName.Identifier.Text == fieldName:
-                {
-                    // Skip if this is part of the field declaration itself (the variable declarator)
-                    if (identifierName.Ancestors().OfType<VariableDeclaratorSyntax>().Any(v => v == variableDeclarator))
-                        continue;
-
-                    // Skip if already handled as part of a this.member access
-                    if (identifierName.Parent is MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax })
-                        continue;
-
-                    var symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol;
-                    if (symbol is not null && SymbolEqualityComparer.Default.Equals(symbol, fieldSymbol))
                     {
-                        nodesToReplace[identifierName] = SyntaxFactory.IdentifierName(parameterName)
-                            .WithTriviaFrom(identifierName);
+                        // Skip if this is part of the field declaration itself (the variable declarator)
+                        if (identifierName.Ancestors().OfType<VariableDeclaratorSyntax>().Any(v => v == variableDeclarator))
+                            continue;
+
+                        // Skip if already handled as part of a this.member access
+                        if (identifierName.Parent is MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax })
+                            continue;
+
+                        var symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol;
+                        if (symbol is not null && SymbolEqualityComparer.Default.Equals(symbol, fieldSymbol))
+                        {
+                            nodesToReplace[identifierName] = SyntaxFactory.IdentifierName(parameterName)
+                                .WithTriviaFrom(identifierName);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
         }
 
