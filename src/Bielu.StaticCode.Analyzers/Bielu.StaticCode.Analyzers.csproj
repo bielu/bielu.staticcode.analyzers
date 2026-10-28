@@ -9,10 +9,12 @@
     <PackageId>Bielu.StaticCode.Analyzers</PackageId>
     <Description>Bielu.StaticCode.Analyzers - Roslyn-based static code analyzers enforcing bielu coding conventions</Description>
     <PackageTags>roslyn;analyzer;code-quality;decorator;options;primary-constructor</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <!-- Analyzer packaging settings -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <!-- Every reference is PrivateAssets="all", so the nuspec would only carry an empty netstandard2.0
+         dependency group with no matching lib/ folder (NU5128). -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <!-- RS1036: this package intentionally includes code fix providers alongside analyzers -->
     <NoWarn>$(NoWarn);RS1036</NoWarn>
   </PropertyGroup>

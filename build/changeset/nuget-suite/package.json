@@ -1,0 +1,6 @@
+{
+  "name": "bielu-staticcode-analyzers",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Placeholder package representing the version of the Bielu.StaticCode.Analyzers NuGet package. Bump this in a changeset for any change to the package; scripts/apply-nuget-version.mjs projects its version onto version.props. Not published anywhere. Held at 0.0.0 until the first stable release: nothing stable has shipped, every published package so far is a 1.0.0-beta.* prerelease, and the bootstrap `major` changeset takes it 0.0.0 -> 1.0.0 so the first stable version lands on 1.0.0. After that it tracks version.props normally."
+}
