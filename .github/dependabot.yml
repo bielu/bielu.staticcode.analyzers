@@ -9,7 +9,35 @@ updates:
     directory: "/" # Directory.Packages.props lives at the repo root
     schedule:
       interval: "weekly"
+    # The default limit of 5 was reached by stale PRs, which silently stopped new update PRs.
+    open-pull-requests-limit: 10
+    ignore:
+      # The Roslyn API version is the minimum compiler consumers need (see Directory.Packages.props):
+      # an analyzer built against a newer Roslyn than the consumer's SDK fails to load (CS8032).
+      # Raise it deliberately, never as a routine bump. Microsoft.CodeAnalysis.Analyzers is build-time
+      # only and stays updatable.
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp.Workspaces"
+    groups:
+      # Released together and only used to build test compilations; one PR instead of one per package.
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+      test-tooling:
+        patterns:
+          - "Microsoft.NET.Test.Sdk"
+          - "xunit*"
+          - "Shouldly"
+          - "coverlet.collector"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/" # changesets release tooling (package.json)
+    schedule:
+      interval: "weekly"
+    groups:
+      changesets:
+        patterns:
+          - "@changesets/*"
